@@ -29,6 +29,7 @@ coverage/
 .env
 .env.local
 .env.*.local
+local.properties
 
 # Logs
 *.log
