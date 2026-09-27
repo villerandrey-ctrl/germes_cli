@@ -49,22 +49,45 @@ class AuthNotifier extends StateNotifier<AuthState> {
       await storage.saveUsername(username);
       await storage.savePassword(password);
 
-      // Test connection
+      // Login and get session cookie
       dio.options.baseUrl = serverUrl;
-      final response = await dio.get('/health');
+      final loginResponse = await dio.post(
+        '/login',
+        data: {
+          'username': username,
+          'password': password,
+        },
+        options: Options(
+          followRedirects: false,
+          validateStatus: (status) => status != null && status < 400,
+        ),
+      );
 
-      if (response.statusCode == 200) {
-        state = state.copyWith(
-          isLoading: false,
-          isAuthenticated: true,
-        );
+      // Extract session cookie from response
+      final setCookie = loginResponse.headers['set-cookie'];
+      if (setCookie != null && setCookie.isNotEmpty) {
+        final cookie = setCookie.first.split(';')[0];
+        await storage.saveSessionCookie(cookie);
+        
+        // Test connection with cookie
+        dio.options.headers['Cookie'] = cookie;
+        final statusResponse = await dio.get('/api/status');
+
+        if (statusResponse.statusCode == 200) {
+          state = state.copyWith(
+            isLoading: false,
+            isAuthenticated: true,
+          );
+        } else {
+          throw Exception('Неверный ответ сервера');
+        }
       } else {
-        throw Exception('Неверный ответ сервера');
+        throw Exception('Не удалось получить сессию');
       }
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: e.toString(),
+        error: 'Ошибка подключения: $e',
       );
     }
   }

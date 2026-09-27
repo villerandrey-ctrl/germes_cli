@@ -36,6 +36,16 @@ class StorageService {
   Future<void> deleteCredentials() async {
     await _secureStorage.delete(key: 'username');
     await _secureStorage.delete(key: 'password');
+    await _secureStorage.delete(key: 'session_cookie');
+  }
+
+  // Session cookie
+  Future<void> saveSessionCookie(String cookie) async {
+    await _secureStorage.write(key: 'session_cookie', value: cookie);
+  }
+
+  Future<String?> getSessionCookie() async {
+    return await _secureStorage.read(key: 'session_cookie');
   }
 
   // Regular storage

@@ -1,7 +1,7 @@
-import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final dioProvider = Provider<Dio>((ref) {
   final dio = Dio(
@@ -18,11 +18,9 @@ final dioProvider = Provider<Dio>((ref) {
     InterceptorsWrapper(
       onRequest: (options, handler) async {
         final storage = const FlutterSecureStorage();
-        final username = await storage.read(key: 'username');
-        final password = await storage.read(key: 'password');
-        if (username != null && password != null) {
-          final credentials = base64Encode(utf8.encode('$username:$password'));
-          options.headers['Authorization'] = 'Basic $credentials';
+        final cookie = await storage.read(key: 'session_cookie');
+        if (cookie != null) {
+          options.headers['Cookie'] = cookie;
         }
         return handler.next(options);
       },
