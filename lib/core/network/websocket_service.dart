@@ -9,11 +9,19 @@ final webSocketProvider = StateNotifierProvider<WebSocketNotifier, WebSocketChan
 class WebSocketNotifier extends StateNotifier<WebSocketChannel?> {
   WebSocketNotifier() : super(null);
 
-  void connect(String url, String apiKey) {
+  void connect(String url, String username, String password) {
     final uri = Uri.parse(url);
-    final wsUrl = 'wss://${uri.host}:${uri.port}/ws?token=$apiKey';
+    final credentials = base64Encode(utf8.encode('$username:$password'));
+    final wsScheme = uri.scheme == 'https' ? 'wss' : 'ws';
+    final wsUrl = '$wsScheme://${uri.host}:${uri.port}/ws';
     
-    state = WebSocketChannel.connect(Uri.parse(wsUrl));
+    state = WebSocketChannel.connect(
+      Uri.parse(wsUrl),
+      protocols: null,
+      headers: {
+        'Authorization': 'Basic $credentials',
+      },
+    );
     
     state!.stream.listen(
       (message) {

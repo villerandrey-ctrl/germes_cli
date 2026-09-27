@@ -37,7 +37,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   AuthNotifier(this.ref) : super(AuthState());
 
-  Future<void> login(String serverUrl, String apiKey) async {
+  Future<void> login(String serverUrl, String username, String password) async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
@@ -46,7 +46,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
       // Save credentials
       await storage.saveServerUrl(serverUrl);
-      await storage.saveApiKey(apiKey);
+      await storage.saveUsername(username);
+      await storage.savePassword(password);
 
       // Test connection
       dio.options.baseUrl = serverUrl;
@@ -85,13 +86,15 @@ class LoginScreen extends ConsumerStatefulWidget {
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _serverUrlController = TextEditingController();
-  final _apiKeyController = TextEditingController();
-  bool _obscureApiKey = true;
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
     _serverUrlController.dispose();
-    _apiKeyController.dispose();
+    _usernameController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -99,7 +102,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (_formKey.currentState!.validate()) {
       await ref.read(authProvider.notifier).login(
             _serverUrlController.text.trim(),
-            _apiKeyController.text.trim(),
+            _usernameController.text.trim(),
+            _passwordController.text.trim(),
           );
 
       if (mounted) {
@@ -172,26 +176,41 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
-                    controller: _apiKeyController,
+                    controller: _usernameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Логин',
+                      hintText: 'Введите логин',
+                      prefixIcon: Icon(Icons.person),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Введите логин';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _passwordController,
                     decoration: InputDecoration(
-                      labelText: 'API ключ',
-                      hintText: 'Введите ваш API ключ',
-                      prefixIcon: const Icon(Icons.key),
+                      labelText: 'Пароль',
+                      hintText: 'Введите пароль',
+                      prefixIcon: const Icon(Icons.lock),
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _obscureApiKey ? Icons.visibility : Icons.visibility_off,
+                          _obscurePassword ? Icons.visibility : Icons.visibility_off,
                         ),
                         onPressed: () {
                           setState(() {
-                            _obscureApiKey = !_obscureApiKey;
+                            _obscurePassword = !_obscurePassword;
                           });
                         },
                       ),
                     ),
-                    obscureText: _obscureApiKey,
+                    obscureText: _obscurePassword,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Введите API ключ';
+                        return 'Введите пароль';
                       }
                       return null;
                     },

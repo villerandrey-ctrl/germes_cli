@@ -17,16 +17,25 @@ class StorageService {
   StorageService(this._secureStorage, this._prefs);
 
   // Secure storage
-  Future<void> saveApiKey(String apiKey) async {
-    await _secureStorage.write(key: 'api_key', value: apiKey);
+  Future<void> saveUsername(String username) async {
+    await _secureStorage.write(key: 'username', value: username);
   }
 
-  Future<String?> getApiKey() async {
-    return await _secureStorage.read(key: 'api_key');
+  Future<String?> getUsername() async {
+    return await _secureStorage.read(key: 'username');
   }
 
-  Future<void> deleteApiKey() async {
-    await _secureStorage.delete(key: 'api_key');
+  Future<void> savePassword(String password) async {
+    await _secureStorage.write(key: 'password', value: password);
+  }
+
+  Future<String?> getPassword() async {
+    return await _secureStorage.read(key: 'password');
+  }
+
+  Future<void> deleteCredentials() async {
+    await _secureStorage.delete(key: 'username');
+    await _secureStorage.delete(key: 'password');
   }
 
   // Regular storage
