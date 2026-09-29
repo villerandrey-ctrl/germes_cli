@@ -12,56 +12,56 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup Java
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'zulu'
-        java-version: '17'
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
 
-    - name: Setup Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: '3.24.0'
-        channel: 'stable'
-        cache: true
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
 
-    - name: Install Flutter dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev
+      - name: Install Flutter dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev
 
-    - name: Flutter doctor
-      run: flutter doctor -v
+      - name: Flutter doctor
+        run: flutter doctor -v
 
-    - name: Get dependencies
-      run: flutter pub get
+      - name: Get dependencies
+        run: flutter pub get
 
-    - name: Build APK (debug)
-      if: github.ref != 'refs/heads/main'
-      run: flutter build apk --debug
+      - name: Build APK (debug)
+        if: github.ref != 'refs/heads/main'
+        run: flutter build apk --debug
 
-    - name: Build APK (release)
-      if: github.ref == 'refs/heads/main'
-      run: flutter build apk --release
+      - name: Build APK (release)
+        if: github.ref == 'refs/heads/main'
+        run: flutter build apk --release
 
-    - name: Upload APK artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: hermes-app-apk
-        path: build/app/outputs/flutter-apk/app-release.apk
-        retention-days: 30
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hermes-app-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 30
 
-    - name: Upload APK to BrowserStack
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BROWSERSTACK_USERNAME != ''
-      env:
-        BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
-        BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
-      run: |
-        curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
-          -X POST "https://api-cloud.browserstack.com/app-live/upload" \
-          -F "file=@build/app/outputs/flutter-apk/app-release.apk" \
-          -F "custom_id=hermes-app-latest"
-        echo "✅ APK загружен в BrowserStack App Live"
+      - name: Upload APK to BrowserStack
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.BROWSERSTACK_USERNAME != ''
+        env:
+          BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+        run: |
+          curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
+            -X POST "https://api-cloud.browserstack.com/app-live/upload" \
+            -F "file=@build/app/outputs/flutter-apk/app-release.apk" \
+            -F "custom_id=hermes-app-latest"
+          echo "✅ APK загружен в BrowserStack App Live"
