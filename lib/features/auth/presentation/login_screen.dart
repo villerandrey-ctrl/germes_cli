@@ -53,7 +53,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       // Login and get session cookie
       dio.options.baseUrl = serverUrl;
       final loginResponse = await dio.post(
-        '/login',
+        '/auth/password-login',
         data: {
           'username': username,
           'password': password,
